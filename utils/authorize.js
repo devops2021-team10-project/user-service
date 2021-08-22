@@ -1,0 +1,15 @@
+function authorize(roles = []) {
+  if (typeof roles === 'string') {
+    roles = [roles];
+  }
+  return [
+    (req, res, next) => {
+      if (roles.length && !roles.includes(req.user.role)) {
+        return res.sendStatus(401);
+      }
+      next();
+    }
+  ];
+}
+
+module.exports.authorize = authorize;

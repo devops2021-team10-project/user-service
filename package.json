@@ -1,34 +1,28 @@
 {
   "name": "user-service",
   "version": "1.0.0",
-  "description": "",
+  "description": "User Service",
   "main": "index.js",
   "scripts": {
-    "build": "npm run clean && babel src -d dist",
-    "clean": "rimraf dist",
-    "db": "babel-node ./db/index.js",
-    "dev": "nodemon --exec babel-node ./src/index.js",
-    "start": "npm run clean && npm run build && npm run db && cd dist && node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index",
+    "dev": "nodemon index",
+    "gen-keypair": "node generate-keypair.js",
+    "seed": "node seed.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Tim10",
+  "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
     "cuid": "^2.1.8",
+    "date-fns": "^2.23.0",
     "dotenv": "^10.0.0",
+    "email-validator": "^2.0.4",
     "express": "^4.17.1",
-    "mongodb": "^3.6.9"
-  },
-  "devDependencies": {
-    "@babel/cli": "^7.14.5",
-    "@babel/core": "^7.14.6",
-    "@babel/node": "^7.14.7",
-    "@babel/preset-env": "^7.14.7",
-    "babel-jest": "^27.0.6",
-    "faker": "^5.5.3",
-    "jest": "^27.0.6",
-    "mongodb-memory-server": "^7.0.0",
-    "nodemon": "^2.0.9",
-    "rimraf": "^3.0.2"
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^3.6.9",
+    "multer": "^1.4.2",
+    "nodemon": "^2.0.7",
+    "passport": "^0.4.1",
+    "passport-jwt": "^4.0.0"
   }
 }
