@@ -70,38 +70,20 @@ const update = async ({ id, data }) => {
   }
 };
 
-const resetPassword = async ({ token, salt, hash }) => {
-  const { db, client } = await makeDb();
-  const session = client.startSession({ defaultTransactionOptions: {
-      readConcern: { level: 'local' },
-      writeConcern: { w: 'majority' },
-      readPreference: 'primary'
-    }});
-  try {
-    await session.withTransaction(async function() {
-      const col = db.collection('users');
-      const user = await col.findOne({ "passwordReset.hash": token, deletedAt: null });
-      if(!user){
-        throw 'Forbidden';
+const resetPassword = async ({ userId, salt, hash }) => {
+  const { db } = await makeDb();
+  const res = await db.collection('users').updateOne(
+    {
+      _id: userId
+    }, {
+      $set: {
+        salt,
+        hash
       }
-      let expDate = new Date(user.passwordReset.expirationDate);
-      if(expDate < new Date()) {
-        throw 'Password reset token expired.';
-      }
-      await col.updateOne({ "passwordReset.hash": token, deletedAt: null },
-        {
-          $set: {
-            passwordReset: {
-              hash: null,
-              expirationDate: null
-            },
-            salt: salt,
-            hash: hash
-          }
-        })
-    });
-  } finally {
-    await session.endSession();
+    }
+  );
+  if(res.modifiedCount !== 1) {
+    throw "Not Found";
   }
 };
 

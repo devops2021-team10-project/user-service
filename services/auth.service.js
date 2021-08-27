@@ -1,5 +1,6 @@
-const userDb = require('../data-access/user-db');
-const passwordUtils = require('../utils/password');
+const userDb = require('./../data-access/user-db');
+const passwordUtils = require('./../utils/password');
+const { issueJWT } = require('./../utils/jwt')
 
 const login = async ({
     username,
@@ -17,8 +18,8 @@ const login = async ({
   if(user.isBlocked === true) {
     throw { status: 400, msg:"Your account is blocked by administrator" };
   }
-  const accessToken = passwordUtils.issueJWT('access', user.id);
-  const refreshToken = passwordUtils.issueJWT('refresh', user.id);
+  const accessToken = issueJWT('access', user.id);
+  const refreshToken = issueJWT('refresh', user.id);
 
   return { accessToken: accessToken.token, refreshToken: refreshToken.token };
 }

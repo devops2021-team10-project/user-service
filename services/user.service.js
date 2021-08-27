@@ -5,6 +5,11 @@ const passwordUtils = require('../utils/password');
 const role = require('../utils/role');
 
 
+const findUserById = async ({ id } = {}) => {
+  const user = await userDb.findById({ id });
+  return user;
+};
+
 const registerRegularUser = async ({
   user
 } = {}) => {
@@ -61,14 +66,20 @@ const registerRegularUser = async ({
 }
 
 const resetPassword = async ({
-  token,
-  password
+  user,
+  oldPassword,
+  newPassword
 } = {}) => {
-  const saltHash = passwordUtils.genPassword(password);
-  await db.userDb.resetPassword({ token: token, salt: saltHash.salt, hash: saltHash.hash });
+  if (passwordUtils.validPassword(oldPassword, user.passwordHash, user.passwordHash)) {
+    const { salt, hash } = passwordUtils.genPassword(newPassword);
+    await db.userDb.resetPassword({ userId: user.id, salt, hash });
+  } else {
+    throw { status: 400, msg: "Wrong old password."};
+  }
 }
 
 module.exports = Object.freeze({
+  findUserById,
   registerRegularUser,
   resetPassword
 });
