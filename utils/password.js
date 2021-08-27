@@ -9,14 +9,14 @@ const PRIV_KEY = fs.readFileSync(pathToKey, 'utf8');
 const accessTokenTTL = process.env.ACCESS_TOKEN_TTL;
 const refreshTokenTTL = process.env.REFRESH_TOKEN_TTL;
 
-function validPassword(password, hash, salt) {
+const validPassword = (password, hash, salt) => {
   var hashVerify = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
   return hash === hashVerify;
-}
+};
 
-function issueJWT(type, id) {
+const  issueJWT = (type, id) => {
   if(type !== 'access' && type !== 'refresh') {
-    throw new Error('Bad JWT type');
+    throw { status: 400, msg: "Bad token type."};
   } else {
     if(type === 'access') {
       ttl = accessTokenTTL;
@@ -31,27 +31,29 @@ function issueJWT(type, id) {
     if(ttl === 'inf') {
       const signedToken = jsonwebtoken.sign(payload, PRIV_KEY, { algorithm: 'RS256' });
       return {
-        token: "Bearer " + signedToken
+        token: signedToken
       }
     } else {
       const signedToken = jsonwebtoken.sign(payload, PRIV_KEY, { expiresIn: ttl, algorithm: 'RS256' });
       return {
-        token: "Bearer " + signedToken,
+        token: signedToken,
         expires: ttl
       }
     }
   }
-}
+};
 
-function genPassword(password) {
+const genPassword = (password) => {
   var salt = crypto.randomBytes(32).toString('hex');
   var genHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
   return {
     salt: salt,
     hash: genHash
   };
-}
+};
 
-module.exports.validPassword = validPassword;
-module.exports.issueJWT = issueJWT;
-module.exports.genPassword = genPassword;
+module.exports = Object.freeze({
+  validPassword,
+  issueJWT,
+  genPassword
+});

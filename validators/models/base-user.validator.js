@@ -11,38 +11,37 @@
 
     isBlocked,
     createdAt,
-    deletedAt,˚
+    deletedAt,˚ s
   }
 */
 
-module.exports = function buildBaseUserValidator ({ emailValidator }) {
-  return Object.freeze({
-    username: (obj) => {
-      const usernamePattern = /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/;
-      if (!(obj.hasOwnProperty("username") &&
-          usernamePattern.test(obj.username))) {
-        throw "Invalid username."
-      }
-    },
-    email: (obj) => {
-      if (!(obj.hasOwnProperty("email") &&
-          emailValidator.validate(obj.email))) {
-        throw "Invalid email address."
-      }
-    },
-    name: (obj) => {
-      const namePattern = /^[a-z ,.'-]+$/;
-      if (!(obj.hasOwnProperty("name") &&
-          namePattern.test(obj.name))) {
-        throw "Invalid name."
-      }
-    },
+const emailValidator = require('email-validator');
 
-    validate: (obj = {}, toValidate = []) => {
-      toValidate.forEach((elem) => {
-        elem(obj);
-      });
-      return true;
-    }
-  });
-}
+const username = (obj) => {
+  const usernamePattern = /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/;
+  if (!(obj.hasOwnProperty("username") &&
+      usernamePattern.test(obj.username))) {
+    throw { status: 400, msg: "Invalid username."};
+  }
+};
+
+const email = (obj) => {
+  if (!(obj.hasOwnProperty("email") &&
+      emailValidator.validate(obj.email))) {
+    throw { status: 400, msg:"Invalid email address."};
+  }
+};
+
+const name = (obj) => {
+  const namePattern = /^[a-z ,.'-]+$/;
+  if (!(obj.hasOwnProperty("name") &&
+      namePattern.test(obj.name))) {
+    throw { status: 400, msg: "Invalid name."};
+  }
+};
+
+module.exports = Object.freeze({
+  username,
+  email,
+  name
+});

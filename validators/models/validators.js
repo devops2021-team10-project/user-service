@@ -1,17 +1,36 @@
- 
-const emailValidator = require("email-validator");
-const parse = require('date-fns/parse');
-const isWithinInterval = require('date-fns/isWithinInterval');
-const sub = require('date-fns/sub');
+const { 
+  username, 
+  email, 
+  name 
+} = require('./base-user.validator');
 
-const buildBaseUserValidator = require('./base-user.validator');
-const buildRegularUserValidator = require('./regular-user.validator');
-const buildAgentUserValidator = require('./agent-user.validator');
+const {
+  phoneNumber,
+  gender,
+  birthday,
+  website,
+  biography
+} = require('./regular-user.validator');
 
-const baseUserValidator = buildBaseUserValidator({ emailValidator });
-const regularUserValidator = buildRegularUserValidator({ parse, isWithinInterval, sub });
-const agentUserValidator = buildAgentUserValidator();
 
-module.exports.baseUserValidator = baseUserValidator;
-module.exports.regularUserValidator = regularUserValidator;
-module.exports.agentUserValidator = agentUserValidator;
+const validate = (obj = {}, toValidate = []) => {
+  toValidate.forEach((elem) => {
+    elem(obj);
+  });
+  return true;
+};
+
+
+module.exports = Object.freeze({
+  regularUser: {
+    username,
+    email, 
+    name,
+    phoneNumber,
+    gender,
+    birthday,
+    website,
+    biography
+  }, 
+  validate
+});

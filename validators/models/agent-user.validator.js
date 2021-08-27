@@ -42,13 +42,4 @@
   }
 */
 
-module.exports = function buildAgentUserValidator () {
-  return Object.freeze({
-    validate: (obj = {}, toValidate = []) => {
-      toValidate.forEach((elem) => {
-        elem(obj);
-      });
-      return true;
-    }
-  });
-}
+module.exports = Object.freeze({});

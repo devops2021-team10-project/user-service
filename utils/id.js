@@ -1,8 +1,6 @@
 const cuid = require('cuid');
 
-const Id = Object.freeze({
+module.exports = Object.freeze({
   makeId: cuid,
   isValidId: cuid.isCuid
 });
-
-module.exports = Id;

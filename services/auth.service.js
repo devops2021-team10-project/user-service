@@ -1,40 +1,28 @@
-function buildAuthService ({ Id, db, validators, passwordUtils, role }) {
-  return Object.freeze({
-    login,
-    refreshToken,
-  });
+const userDb = require('../data-access/user-db');
+const passwordUtils = require('../utils/password');
 
-  async function login({
-     username,
-     password,
-     role
-  } = {}) {
-    const user = await db.userDb.findByUsername({ username });
-    if (user === null) {
-      throw "Bad credentials.";
-    }
-    if (user.role !== role) {
-      throw "Bad credentials.";
-    }
-    const isValid = passwordUtils.validPassword(password, user.passwordHash, user.passwordSalt);
-    if(!isValid) {
-      throw "Bad credentials.";
-    }
-    if(user.isBlocked === true) {
-      throw "Your account is blocked by administrator";
-    }
-    const accessToken = passwordUtils.issueJWT('access', user.id);
-    const refreshToken = passwordUtils.issueJWT('refresh', user.id);
-    return { accessToken: accessToken.token, refreshToken: refreshToken.token, user };
+const login = async ({
+    username,
+    password,
+    role
+} = {}) => {
+  const user = await userDb.findByUsername({ username });
+  if (user === null && user.role !== role) {
+    throw { status: 400, msg: "Bad credentials."};
   }
-
-  async function refreshToken({
-    id
-  } = {}) {
-    const accessToken = passwordUtils.issueJWT('access', id);
-    return { accessToken: accessToken.token };
+  const isValid = passwordUtils.validPassword(password, user.passwordHash, user.passwordSalt);
+  if(!isValid) {
+    throw { status: 400, msg: "Bad credentials."};
   }
+  if(user.isBlocked === true) {
+    throw { status: 400, msg:"Your account is blocked by administrator" };
+  }
+  const accessToken = passwordUtils.issueJWT('access', user.id);
+  const refreshToken = passwordUtils.issueJWT('refresh', user.id);
 
+  return { accessToken: accessToken.token, refreshToken: refreshToken.token };
 }
 
-module.exports.buildAuthService = buildAuthService;
+module.exports = Object.freeze({
+  login
+});
