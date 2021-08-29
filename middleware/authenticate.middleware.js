@@ -2,9 +2,16 @@ const { handleError } = require('../utils/error');
 const { verifyJWT } = require('../utils/jwt');
 const userService = require('../services/user.service');
 
+const microserviceToken = process.env.MICROSERVICE_TOKEN;
 
 const authenticate = async (req, res, next) => {
-  const authHeader = req.headers['authorization']
+  const msTokenHeader = req.headers['microservice-token'];
+  if (msTokenHeader === microserviceToken) {
+    req.isServiceCall = true;
+    return next();
+  }
+
+  const authHeader = req.headers['authorization'];
   if (!authHeader) {
     return res.status(400).json({ msg: "Bad token." });
   }
@@ -26,6 +33,7 @@ const authenticate = async (req, res, next) => {
     return res.status(400).json({ msg: "Bad token. User not found." });
   }
   req.user = user;
+  req.isServiceCall = false;
 
   return next();
 };

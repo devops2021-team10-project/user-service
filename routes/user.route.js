@@ -74,7 +74,7 @@ userRouter.put(
         throw {status: 400, msg: "Bad request"};
       }
 
-      if (req.user.id !== userId) {
+      if (req.user.id !== userId && !req.isServiceCall) {
         throw { status: 400, msg: "Access denied." };
       }
 
