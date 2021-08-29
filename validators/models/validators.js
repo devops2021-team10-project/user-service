@@ -1,5 +1,6 @@
 const { 
   username, 
+  password,
   email, 
   name 
 } = require('./base-user.validator');
@@ -14,16 +15,19 @@ const {
 
 
 const validate = (obj = {}, toValidate = []) => {
+  const newObj = {};
   toValidate.forEach((elem) => {
     elem(obj);
+    newObj[elem.name] = obj[elem.name];
   });
-  return true;
+  return newObj;
 };
 
 
 module.exports = Object.freeze({
-  regularUser: {
+  regularUserValidator: {
     username,
+    password,
     email, 
     name,
     phoneNumber,

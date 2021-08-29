@@ -6,7 +6,7 @@ const userDb = require('../data-access/user-db');
 
 const insertUser = async () => {
 
-  const passSaltHash = passwordUtils.genPassword("123456");
+  const passSaltHash = passwordUtils.genPassword({ password: "123456"});
   const userData = {
     id:                           Id.makeId(),
     role:                         role.regular,

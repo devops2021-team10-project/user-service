@@ -8,10 +8,13 @@ const login = async ({
     role
 } = {}) => {
   const user = await userDb.findByUsername({ username });
-  if (user === null && user.role !== role) {
+  if (!user) {
     throw { status: 400, msg: "Bad credentials."};
   }
-  const isValid = passwordUtils.validPassword(password, user.passwordHash, user.passwordSalt);
+  if (user.role !== role) {
+    throw { status: 400, msg: "Bad credentials."};
+  }
+  const isValid = passwordUtils.validPassword({ password, hash: user.passwordHash, salt: user.passwordSalt });
   if(!isValid) {
     throw { status: 400, msg: "Bad credentials."};
   }

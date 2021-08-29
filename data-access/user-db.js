@@ -34,28 +34,27 @@ const findByEmail = async ({ email }) => {
   return { id, ...insertedInfo };
 };
 
-const insert = async ({ id: _id = Id.makeId(), ...userData }) => {
+const insert = async ({ data }) => {
   try {
+    const id = Id.makeId();
     const { db } = await makeDb();
-    const foundUser = findByUsername
-
     const result = await db
       .collection('users')
-      .insertOne({ _id, ...userData });
-    const { _id: id, ...insertedInfo } = result.ops[0];
-    return { id, ...insertedInfo };
+      .insertOne({ _id: id, ...data });
+    const { _id, ...insertedUser } = result.ops[0];
+    return { id: _id, ...insertedUser };
   } catch(err) {
-    if (err.name === 'MongoError' && err.code === 11000) {
-      throw 'Email already in use.';
-    } else {
-      throw err;
-    }
+    throw err;
   }
 };
 
 const update = async ({ id, data }) => {
+  console.log("ID:");
+  console.log(id);
+  console.log(data);
+
   const { db } = await makeDb();
-  const res = await db.collection('users').updateOne(
+  const result = await db.collection('users').updateOne(
     {
       _id: id,
       deletedAt: null
@@ -65,24 +64,78 @@ const update = async ({ id, data }) => {
       }
     }
   );
-  if(res.modifiedCount !== 1) {
-    throw "Not Found";
+  console.log("Result:");
+  console.log(result);
+  if(result.matchedCount !== 1) {
+    throw "User not found for update ops.";
   }
 };
 
-const resetPassword = async ({ userId, salt, hash }) => {
+const addMutedProfile = async ({ userId, toMuteUserId }) => {
+  const { db } = await makeDb();
+  const res = await db.collection('users').updateOne(
+    {
+      _id: userId,
+      deletedAt: null
+    }, 
+    {
+      $addToSet: { mutedProfiles: toMuteUserId }
+    }
+  );
+};
+
+const removeMutedProfile = async ({ userId, toUnmuteUserId }) => {
+  const { db } = await makeDb();
+  const res = await db.collection('users').updateOne(
+    {
+      _id: userId,
+      deletedAt: null
+    }, 
+    {
+      $pull: { mutedProfiles: toUnmuteUserId }
+    }
+  );
+};
+
+const addBlockedProfile = async ({ userId, toBlockUserId }) => {
+  const { db } = await makeDb();
+  const res = await db.collection('users').updateOne(
+    {
+      _id: userId,
+      deletedAt: null
+    }, 
+    {
+      $addToSet: { blockedProfiles: toBlockUserId }
+    }
+  );
+};
+
+const removeBlockedProfile = async ({ userId, toBlockUserId }) => {
+  const { db } = await makeDb();
+  const res = await db.collection('users').updateOne(
+    {
+      _id: userId,
+      deletedAt: null
+    }, 
+    {
+      $pull: { blockedProfiles: toBlockUserId }
+    }
+  );
+};
+
+const resetPassword = async ({ userId, passwordHash, passwordSalt }) => {
   const { db } = await makeDb();
   const res = await db.collection('users').updateOne(
     {
       _id: userId
     }, {
       $set: {
-        salt,
-        hash
+        passwordHash,
+        passwordSalt
       }
     }
   );
-  if(res.modifiedCount !== 1) {
+  if(res.matchedCount !== 1) {
     throw "Not Found";
   }
 };
@@ -99,7 +152,7 @@ const deleteById = async ({ id }) => {
       }
     }
   );
-  if(res.modifiedCount !== 1) {
+  if(res.matchedCount !== 1) {
     throw "Not Found";
   }
 };
@@ -109,8 +162,15 @@ module.exports = Object.freeze({
   findById,
   findByUsername,
   findByEmail,
+
   insert,
   update,
   resetPassword,
+
+  addMutedProfile,
+  removeMutedProfile,
+  addBlockedProfile,
+  removeBlockedProfile,
+
   deleteById,
 });

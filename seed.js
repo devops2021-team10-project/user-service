@@ -1,8 +1,8 @@
 require('dotenv').config();
 
-const seeders = require('./seeders/seeders');
+const userSeeder = require('./seeders/user.seeder');
 
-seeders.userSeeder.insertUser()
+userSeeder.insertUser()
   .then(r => {
     if (r) {
       console.log("Users are seeded successfully.")

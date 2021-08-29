@@ -3,6 +3,7 @@
     id,
     role,
     username,
+    password,
     email,
     name,
 
@@ -25,6 +26,14 @@ const username = (obj) => {
   }
 };
 
+const password = (obj) => {
+  const passwordPattern = /^.{6,100}$/;
+  if (!(obj.hasOwnProperty("password") &&
+    passwordPattern.test(obj.password))) {
+    throw { status: 400, msg: "Invalid password."};
+  }
+};
+
 const email = (obj) => {
   if (!(obj.hasOwnProperty("email") &&
       emailValidator.validate(obj.email))) {
@@ -33,7 +42,7 @@ const email = (obj) => {
 };
 
 const name = (obj) => {
-  const namePattern = /^[a-z ,.'-]+$/;
+  const namePattern = /^[a-z A-Z]+$/;
   if (!(obj.hasOwnProperty("name") &&
       namePattern.test(obj.name))) {
     throw { status: 400, msg: "Invalid name."};
@@ -42,6 +51,7 @@ const name = (obj) => {
 
 module.exports = Object.freeze({
   username,
+  password,
   email,
   name
 });

@@ -98,10 +98,26 @@ const biography = (obj) => {
   }
 };
 
+const isPrivate = (obj) => {
+  if (!(obj.hasOwnProperty("isPrivate") &&
+      typeof obj.website === "boolean")) {
+    throw { status: 400, msg: "Invalid value" };
+  }
+};
+
+const isTaggable = (obj) => {
+  if (!(obj.hasOwnProperty("isTaggable") &&
+      typeof obj.website === "boolean")) {
+    throw { status: 400, msg: "Invalid value" };
+  }
+};
+
 module.exports = Object.freeze({
   phoneNumber,
   gender,
   birthday,
   website,
-  biography
+  biography,
+  isPrivate,
+  isTaggable,
 });
