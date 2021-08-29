@@ -49,10 +49,6 @@ const insert = async ({ data }) => {
 };
 
 const update = async ({ id, data }) => {
-  console.log("ID:");
-  console.log(id);
-  console.log(data);
-
   const { db } = await makeDb();
   const result = await db.collection('users').updateOne(
     {
@@ -64,10 +60,8 @@ const update = async ({ id, data }) => {
       }
     }
   );
-  console.log("Result:");
-  console.log(result);
   if(result.matchedCount !== 1) {
-    throw "User not found for update ops.";
+    throw "User not found for update ops";
   }
 };
 
@@ -136,7 +130,7 @@ const resetPassword = async ({ userId, passwordHash, passwordSalt }) => {
     }
   );
   if(res.matchedCount !== 1) {
-    throw "Not Found";
+    throw "User not found for reset password ops";
   }
 };
 
@@ -153,7 +147,7 @@ const deleteById = async ({ id }) => {
     }
   );
   if(res.matchedCount !== 1) {
-    throw "Not Found";
+    throw "User not found for delete ops";
   }
 };
 

@@ -1,12 +1,10 @@
 const userDb = require('../data-access/user-db');
-const { regularUserValidator: rValid , validate } = './../validators/models/validators'
 const passwordUtils = require('../utils/password');
 const role = require('../utils/role');
 
 
 const findUserById = async ({ id } = {}) => {
-  const user = await userDb.findById({ id });
-  return user;
+  return await userDb.findById({id});
 };
 
 const registerRegularUser = async ({
@@ -50,8 +48,7 @@ const registerRegularUser = async ({
     deletedAt:                    null,
   };
 
-  const createdUser = await userDb.insert({ data: userCreateData });
-  return createdUser;
+  return await userDb.insert({data: userCreateData});
 }
 
 const updateRegularUser = async ({
@@ -104,9 +101,9 @@ const changeIsTaggable = async ({
 const changeMutedProfile = async ({
   id,
   toMuteUserId,
-  muted,
+  isMuted,
 } = {}) => {
-  if (muted) {
+  if (isMuted) {
     await userDb.addMutedProfile({ userId: id, toMuteUserId });
   } else {
     await userDb.removeMutedProfile({ userId: id, toMuteUserId });
@@ -116,9 +113,9 @@ const changeMutedProfile = async ({
 const changeBlockedProfile = async ({
   id,
   toBlockUserId,
-  blocked,
+  isBlocked,
 } = {}) => {
-  if (blocked) {
+  if (isBlocked) {
     await userDb.addBlockedProfile({ userId: id, toBlockUserId });
   } else {
     await userDb.removeBlockedProfile({ userId: id, toBlockUserId });
@@ -139,6 +136,10 @@ const resetPassword = async ({
   await userDb.resetPassword({ userId: user.id, passwordHash: hash, passwordSalt: salt });
 }
 
+const deleteRegularUser = async ({ id } = {}) => {
+  await userDb.deleteById({ id });
+};
+
 module.exports = Object.freeze({
   findUserById,
 
@@ -151,4 +152,6 @@ module.exports = Object.freeze({
   changeBlockedProfile,
 
   resetPassword,
+
+  deleteRegularUser,
 });

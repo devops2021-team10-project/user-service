@@ -100,14 +100,14 @@ const biography = (obj) => {
 
 const isPrivate = (obj) => {
   if (!(obj.hasOwnProperty("isPrivate") &&
-      typeof obj.website === "boolean")) {
+      typeof obj.isPrivate === "boolean")) {
     throw { status: 400, msg: "Invalid value" };
   }
 };
 
 const isTaggable = (obj) => {
   if (!(obj.hasOwnProperty("isTaggable") &&
-      typeof obj.website === "boolean")) {
+      typeof obj.isTaggable === "boolean")) {
     throw { status: 400, msg: "Invalid value" };
   }
 };

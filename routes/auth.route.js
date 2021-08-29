@@ -9,7 +9,7 @@ const Role = require('./../utils/role');
 const authenticate = require('./../middleware/authenticate.middleware');
 const authorize = require('./../middleware/authorize.middleware');
 
-const { regularUserValidator: rValid, validate } = require('./../validators/models/validators');
+const { regularUserValidator: rValid, validate } = require('../validators/validators');
 
 const authService = require('./../services/auth.service');
 const userService = require('./../services/user.service');
