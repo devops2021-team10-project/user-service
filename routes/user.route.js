@@ -21,7 +21,7 @@ const publicRegularUserFormatter = require('./../formatters/user/public-regular-
 
 // Find user by username (public)
 userRouter.get(
-  '/regular-user/public/:username',
+  '/regular-user/public/byUsername/:username',
   async (req, res, next) => {
     try {
       const username = req.params.username;
@@ -32,6 +32,26 @@ userRouter.get(
       const user = await userService.findUserByUsername({ username });
       if (!user) {
         return res.status(400).json({msg: "User with given username not found."});
+      }
+      return res.status(200).json(publicRegularUserFormatter.format(user));
+    } catch(err) {
+      handleError(err, res);
+    }
+  });
+
+// Find user by id (public)
+userRouter.get(
+  '/regular-user/public/byId/:userId',
+  async (req, res, next) => {
+    try {
+      const userId = req.params.userId;
+      if (!userId) {
+        throw {status: 400, msg: "Bad request"}
+      }
+
+      const user = await userService.findUserById({ id: userId });
+      if (!user) {
+        return res.status(400).json({msg: "User with given id not found."});
       }
       return res.status(200).json(publicRegularUserFormatter.format(user));
     } catch(err) {
