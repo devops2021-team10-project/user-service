@@ -82,7 +82,7 @@ const birthday = (obj) => {
 };
 
 const website = (obj) => {
-  const websitePattern = /(https?:\/\/)?(www\.)[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)|(https?:\/\/)?(www\.)?(?!ww)[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)/;
+  const websitePattern = /^(https?:\/\/)?(www\.)[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)|(https?:\/\/)?(www\.)?(?!ww)[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)$/;
   if (!(obj.hasOwnProperty("website") &&
       typeof obj.website === "string" &&
       (websitePattern.test(obj.website) ||
@@ -92,9 +92,9 @@ const website = (obj) => {
 };
 
 const biography = (obj) => {
-  if (!(obj.hasOwnProperty("website") &&
-      typeof obj.website === "string")) {
-    throw { status: 400, msg: "Invalid website" };
+  if (!(obj.hasOwnProperty("biography") &&
+      typeof obj.biography === "string")) {
+    throw { status: 400, msg: "Invalid biography" };
   }
 };
 

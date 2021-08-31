@@ -2,9 +2,16 @@ const userDb = require('../data-access/user-db');
 const passwordUtils = require('../utils/password');
 const role = require('../utils/role');
 
+const findUserByUsername = async ({ username } = {}) => {
+  return await userDb.findByUsername({ username });
+};
 
 const findUserById = async ({ id } = {}) => {
   return await userDb.findById({id});
+};
+
+const searchByName = async ({ name } = {}) => {
+  return await userDb.searchByName({ name });
 };
 
 const registerRegularUser = async ({
@@ -142,6 +149,8 @@ const deleteRegularUser = async ({ id } = {}) => {
 
 module.exports = Object.freeze({
   findUserById,
+  findUserByUsername,
+  searchByName,
 
   registerRegularUser,
 

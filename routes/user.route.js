@@ -17,6 +17,50 @@ const {
 const userService = require('./../services/user.service');
 
 const regularUserFormatter = require('./../formatters/user/regular-user.formatter');
+const publicRegularUserFormatter = require('./../formatters/user/public-regular-user.formatter');
+
+// Find user by username (public)
+userRouter.get(
+  '/regular-user/public/:username',
+  async (req, res, next) => {
+    try {
+      const username = req.params.username;
+      if (!username) {
+        throw {status: 400, msg: "Bad request"}
+      }
+
+      const user = await userService.findUserByUsername({ username });
+      if (!user) {
+        return res.status(400).json({msg: "User with given username not found."});
+      }
+      return res.status(200).json(publicRegularUserFormatter.format(user));
+    } catch(err) {
+      handleError(err, res);
+    }
+  });
+
+
+// Search users by name (public)
+userRouter.get(
+  '/regular-user/public/search/:name',
+  async (req, res, next) => {
+    try {
+      const name = req.params.name;
+      if (!name) {
+        throw {status: 400, msg: "Bad request"}
+      }
+
+      console.log(name)
+
+      const users = await userService.searchByName({ name });
+      if (!users) {
+        return res.status(200).json([]);
+      }
+      return res.status(200).json(users.map((user)=>publicRegularUserFormatter.format(user)));
+    } catch(err) {
+      handleError(err, res);
+    }
+  });
 
 // Find user by id
 userRouter.get(
@@ -143,7 +187,7 @@ userRouter.put(
   authorize([Role.regular]),
   async (req, res, next) => {
     try {
-      validate(req.body, [rValid.isTaggable]);
+      const {isTaggable} = validate(req.body, [rValid.isTaggable]);
       await userService.changeIsTaggable({
         id: req.user.id,
         value: isTaggable,

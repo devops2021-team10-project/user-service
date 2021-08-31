@@ -1,5 +1,8 @@
 
 const format = (user) => {
+  if (!user) {
+    return null;
+  }
   return {
     id: user.id,
     role: user.role,
@@ -15,6 +18,9 @@ const format = (user) => {
 
     isPrivate: user.isPrivate,
     isTaggable: user.isTaggable,
+
+    mutedProfiles: user.mutedProfiles,
+    blockedProfiles: user.blockedProfiles,
 
     isBlocked: user.isBlocked,
     createdAt: user.createdAt,

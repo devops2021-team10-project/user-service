@@ -12,6 +12,25 @@ const findById = async ({ id: _id }) => {
   return { id, ...info };
 };
 
+const searchByName = async ({ name }) => {
+  const { db } = await makeDb();
+  const result = await db.collection('users').find(
+    { $text: { $search: name } },
+    { score: { $meta: "textScore" } }
+  ).sort( { score: { $meta: "textScore" } } );
+  const found = await result.toArray();
+  if (found.length === 0) {
+    return null;
+  }
+
+  const normal = [];
+  for (let e of found) {
+    const { _id: id, ...info } = e;
+    normal.push({ id, ...info });
+  }
+  return normal;
+};
+
 const findByUsername = async ({ username }) => {
   const { db } = await makeDb();
   const result = await db.collection('users').find({ username, deletedAt: null });
@@ -78,7 +97,7 @@ const addMutedProfile = async ({ userId, toMuteUserId }) => {
   );
 };
 
-const removeMutedProfile = async ({ userId, toUnmuteUserId }) => {
+const removeMutedProfile = async ({ userId, toMuteUserId }) => {
   const { db } = await makeDb();
   const res = await db.collection('users').updateOne(
     {
@@ -86,7 +105,7 @@ const removeMutedProfile = async ({ userId, toUnmuteUserId }) => {
       deletedAt: null
     }, 
     {
-      $pull: { mutedProfiles: toUnmuteUserId }
+      $pull: { mutedProfiles: toMuteUserId }
     }
   );
 };
@@ -154,6 +173,7 @@ const deleteById = async ({ id }) => {
 
 module.exports = Object.freeze({
   findById,
+  searchByName,
   findByUsername,
   findByEmail,
 
