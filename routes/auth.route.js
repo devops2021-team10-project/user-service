@@ -6,8 +6,9 @@ const { verifyJWT } = require('../utils/jwt');
 
 const Role = require('./../utils/role');
 
-const authenticate = require('./../middleware/authenticate.middleware');
-const authorize = require('./../middleware/authorize.middleware');
+const authenticateUser = require('../middleware/authenticateUser.middleware');
+const authorizeRoles = require('../middleware/authorizeRoles.middleware');
+const authorizeFollowing = require('../middleware/authorizeFollowing.middleware');
 
 const { regularUserValidator: rValid, validate } = require('../validators/validators');
 
@@ -41,9 +42,9 @@ authRouter.post(
 });
 
 authRouter.get(
-  '/regular-user/find-by-jwt-header', 
-  authenticate,
-  authorize([Role.regular]),
+  '/regular-user/find-by-jwt-header',
+  authenticateUser(),
+  authorizeRoles([Role.regular]),
   async (req, res, next) => {
     try {
       return res.status(200).json(regularUserFormatter.format(req.user));
@@ -69,6 +70,45 @@ authRouter.post(
       handleError(err, res);
     }
 });
+
+authRouter.post(
+  '/authenticateUser',
+  async (req, res, next) => {
+    try {
+      const resultReq = await authenticateUser.checkCondition({req: req.body.remoteReq})
+      return res.status(200).json(resultReq);
+    } catch (err) {
+      handleError(err, res);
+    }
+  }
+);
+
+authRouter.post(
+  '/authorizeRoles',
+  async (req, res, next) => {
+    try {
+      await authorizeRoles.checkCondition({
+        req: req.body.remoteReq,
+        roles: req.body.userRoles
+      });
+      return res.sendStatus(200);
+    } catch (err) {
+      handleError(err, res);
+    }
+  }
+);
+
+authRouter.post(
+  '/authorizeFollowing',
+  async (req, res, next) => {
+    try {
+      await authorizeFollowing.checkCondition({ req: req.body.remoteReq });
+      return res.sendStatus(200);
+    } catch (err) {
+      handleError(err, res);
+    }
+  }
+);
 
 
 module.exports = authRouter;

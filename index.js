@@ -20,7 +20,7 @@ app.use('/user-service-api/auth', authRouter);
 app.use('/user-service-api/user', userRouter);
 
 
-// Get enviroment vars
+// Get environment vars
 const host = process.env.SERVER_HOST;
 const port = process.env.SERVER_PORT;
 

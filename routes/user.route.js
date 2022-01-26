@@ -1,23 +1,29 @@
+// Main
 const express = require('express');
 const userRouter = express.Router();
+
+// Enums
+const roleEnum = require('./../utils/role');
+
+// Schema validators
+const { userValidator } = require('../schemas/ajv');
+
+// Formatters
+const regularUserFormatter = require("../formatters/user/regular-user.formatter");
+const publicRegularUserFormatter = require("../formatters/user/regular-user.formatter");
+
+// Utils
 const { handleError } = require('./../utils/error');
 
-const Role = require('./../utils/role');
+// Auth utils
+const authenticateUser = require('../middleware/authenticateUser.middleware');
+const authorizeRoles = require('../middleware/authorizeRoles.middleware');
+const authorizeFollowing = require('../middleware/authorizeFollowing.middleware');
 
-const authenticate = require('./../middleware/authenticate.middleware');
-const authorize = require('./../middleware/authorize.middleware');
-
-const {
-  regularUserValidator: rValid,
-  changeMutedProfileRequestValidator,
-  changeBlockedProfileRequestValidator,
-  validate
-} = require('../validators/validators');
-
+// Services
 const userService = require('./../services/user.service');
 
-const regularUserFormatter = require('./../formatters/user/regular-user.formatter');
-const publicRegularUserFormatter = require('./../formatters/user/public-regular-user.formatter');
+
 
 // Find user by username (public)
 userRouter.get(
@@ -26,7 +32,7 @@ userRouter.get(
     try {
       const username = req.params.username;
       if (!username) {
-        throw {status: 400, msg: "Bad request"}
+        throw { status: 400, msg: "Bad request" }
       }
 
       const user = await userService.findUserByUsername({ username });
@@ -76,7 +82,7 @@ userRouter.get(
       if (!users) {
         return res.status(200).json([]);
       }
-      return res.status(200).json(users.map((user)=>publicRegularUserFormatter.format(user)));
+      return res.status(200).json(users.map((user) => publicRegularUserFormatter.format(user)));
     } catch(err) {
       handleError(err, res);
     }
@@ -85,8 +91,8 @@ userRouter.get(
 // Find user by id
 userRouter.get(
   '/regular-user/:userId',
-  authenticate,
-  authorize([Role.regular]),
+  authenticateUser(),
+  authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
       
@@ -102,24 +108,13 @@ userRouter.get(
     }
 });
 
-// Insert user
+// Create new user (public)
 userRouter.post(
   '/regular-user',
   async (req, res, next) => {
     try {
-      const validUserData = validate(req.body, [
-        rValid.username,
-        rValid.password,
-        rValid.email,
-        rValid.name,
-        rValid.phoneNumber,
-        rValid.gender,
-        rValid.birthday,
-        rValid.website,
-        rValid.biography,
-      ]);
-
-      const insertedUser = await userService.registerRegularUser({ userData: validUserData });
+      userValidator.validateCreate(req.body);
+      const insertedUser = await userService.registerRegularUser({ userData: req.body });
       return res.status(200).json(regularUserFormatter.format(insertedUser));
     } catch(err) {
       handleError(err, res);
@@ -129,8 +124,8 @@ userRouter.post(
 // Update user
 userRouter.put(
   '/regular-user/update/:userId',
-  authenticate,
-  authorize([Role.regular]),
+  authenticateUser(),
+  authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
       const userId = req.params.userId;
@@ -142,18 +137,8 @@ userRouter.put(
         throw { status: 400, msg: "Access denied." };
       }
 
-      const validUserData = validate(req.body, [
-        rValid.username,
-        rValid.email,
-        rValid.name,
-        rValid.phoneNumber,
-        rValid.gender,
-        rValid.birthday,
-        rValid.website,
-        rValid.biography,
-      ]);
-
-      const updatedUser = await userService.updateRegularUser({ id: userId, userData: validUserData });
+      userValidator.validateUpdate(req.body);
+      const updatedUser = await userService.updateRegularUser({ id: userId, userData: req.body });
       return res.status(200).json(regularUserFormatter.format(updatedUser));
     } catch(err) {
       handleError(err, res);
@@ -163,14 +148,11 @@ userRouter.put(
 // Reset user password
 userRouter.put(
   '/regular-user/reset-password',
-  authenticate,
-  authorize([Role.regular]),
+  authenticateUser(),
+  authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
-
-      validate({password: req.body.oldPassword}, [rValid.password]);
-      validate({password: req.body.newPassword}, [rValid.password]);
-
+      userValidator.validatePasswordReset(req.body);
       await userService.resetPassword({ 
         user: req.user, 
         oldPassword: req.body.oldPassword, 
@@ -185,8 +167,8 @@ userRouter.put(
 // Change IsPrivate value
 userRouter.put(
   '/regular-user/change-is-private',
-  authenticate,
-  authorize([Role.regular]),
+  authenticateUser(),
+  authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
       const {isPrivate} = validate(req.body, [rValid.isPrivate]);
@@ -203,8 +185,8 @@ userRouter.put(
 // Change IsTaggable value
 userRouter.put(
   '/regular-user/change-is-taggable',
-  authenticate,
-  authorize([Role.regular]),
+  authenticateUser(),
+  authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
       const {isTaggable} = validate(req.body, [rValid.isTaggable]);
@@ -221,8 +203,8 @@ userRouter.put(
 // Change muted profile
 userRouter.put(
   '/regular-user/change-muted-profile',
-  authenticate,
-  authorize([Role.regular]),
+  authenticateUser(),
+  authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
       const validData = validate(req.body, [
@@ -243,8 +225,8 @@ userRouter.put(
 // Change muted profile
 userRouter.put(
   '/regular-user/change-blocked-profile',
-  authenticate,
-  authorize([Role.regular]),
+  authenticateUser(),
+  authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
       const validData = validate(req.body, [
@@ -266,8 +248,8 @@ userRouter.put(
 // Delete user
 userRouter.delete(
   '/regular-user',
-  authenticate,
-  authorize([Role.regular]),
+  authenticateUser(),
+  authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
       await userService.deleteRegularUser({
