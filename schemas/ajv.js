@@ -24,6 +24,7 @@ ajv.addFormat("custom_date", function(dateTimeString) {
 
 module.exports = Object.freeze({
   userValidator: {
+    validateLogin: ajv.compile(require('./user/login')),
     validateCreate: ajv.compile(require('./user/create')),
     validateUpdate: ajv.compile(require('./user/update')),
     validatePasswordReset: ajv.compile(require('./user/passwordReset')),

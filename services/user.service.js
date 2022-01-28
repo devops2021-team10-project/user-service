@@ -1,6 +1,14 @@
-const userDb = require('../data-access/user-db');
-const passwordUtils = require('../utils/password');
+
+// Enums
 const role = require('../utils/role');
+
+// Utils
+const passwordUtils = require('../utils/password');
+
+// DB access
+const userDb = require('../data-access/user-db');
+
+
 
 const findUserByUsername = async ({ username } = {}) => {
   return await userDb.findByUsername({ username });

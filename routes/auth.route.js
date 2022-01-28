@@ -1,22 +1,29 @@
+// Main
 const express = require('express');
 const authRouter = express.Router();
 
+// Enums
+const Role = require('./../utils/role');
+
+// JSON request schema validators
+const { userValidator } = require('../schemas/ajv');
+
+// Formatters
+const regularUserFormatter = require('./../formatters/user/regular-user.formatter');
+
+// Util
 const { handleError } = require('./../utils/error');
 const { verifyJWT } = require('../utils/jwt');
 
-const Role = require('./../utils/role');
-
+// Middleware
 const { authenticateUser } = require('../middleware/authenticateUser.middleware');
 const { authorizeRoles } = require('../middleware/authorizeRoles.middleware');
 const { authorizeFollowing } = require('../middleware/authorizeFollowing.middleware');
 
-const { regularUserValidator: rValid, validate } = require('../validators/validators');
-
+// Services
 const authService = require('./../services/auth.service');
 const userService = require('./../services/user.service');
 
-
-const regularUserFormatter = require('./../formatters/user/regular-user.formatter');
 
 
 authRouter.post(

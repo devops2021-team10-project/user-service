@@ -5,7 +5,7 @@ const userRouter = express.Router();
 // Enums
 const roleEnum = require('./../utils/role');
 
-// Schema validators
+// JSON request schema validators
 const { userValidator } = require('../schemas/ajv');
 
 // Formatters
@@ -15,14 +15,13 @@ const publicRegularUserFormatter = require("../formatters/user/regular-user.form
 // Utils
 const { handleError } = require('./../utils/error');
 
-// Auth utils
+// Middleware
 const { authenticateUser } = require('../middleware/authenticateUser.middleware');
 const { authorizeRoles } = require('../middleware/authorizeRoles.middleware');
 const { authorizeFollowing } = require('../middleware/authorizeFollowing.middleware');
 
 // Services
 const userService = require('./../services/user.service');
-
 
 
 // Find user by username (public)
@@ -113,7 +112,10 @@ userRouter.post(
   '/regular-user',
   async (req, res, next) => {
     try {
-      userValidator.validateCreate(req.body);
+      if (!userValidator.validateCreate(req.body)) {
+        throw "Bad data.";
+      }
+
       const insertedUser = await userService.registerRegularUser({ userData: req.body });
       return res.status(200).json(regularUserFormatter.format(insertedUser));
     } catch(err) {
@@ -137,7 +139,10 @@ userRouter.put(
         throw { status: 400, msg: "Access denied." };
       }
 
-      userValidator.validateUpdate(req.body);
+      if (!userValidator.validateUpdate(req.body)) {
+        throw "Bad data.";
+      }
+
       const updatedUser = await userService.updateRegularUser({ id: userId, userData: req.body });
       return res.status(200).json(regularUserFormatter.format(updatedUser));
     } catch(err) {
@@ -152,7 +157,9 @@ userRouter.put(
   authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
-      userValidator.validatePasswordReset(req.body);
+      if (!userValidator.validatePasswordReset(req.body)) {
+        throw "Bad data.";
+      }
       await userService.resetPassword({ 
         user: req.user, 
         oldPassword: req.body.oldPassword, 
@@ -172,7 +179,9 @@ userRouter.put(
   async (req, res, next) => {
     try {
 
-      userValidator.validateChangeIsPrivate(req.body);
+      if (!userValidator.validateChangeIsPrivate(req.body)) {
+        throw "Bad data.";
+      }
       await userService.changeIsPrivate({ 
         id: req.user.id, 
         value: req.body.isPrivate,
@@ -191,7 +200,9 @@ userRouter.put(
   async (req, res, next) => {
     try {
 
-      userValidator.validateChangeIsTaggable(req.body);
+      if (!userValidator.validateChangeIsTaggable(req.body)) {
+        throw "Bad data.";
+      };
       await userService.changeIsTaggable({
         id: req.user.id,
         value: req.body.isTaggable,
@@ -210,7 +221,9 @@ userRouter.put(
   async (req, res, next) => {
     try {
 
-      userValidator.validateChangeMutedProfile(req.body);
+      if (!userValidator.validateChangeMutedProfile(req.body)) {
+        throw "Bad data.";
+      }
       await userService.changeMutedProfile({
         id: req.user.id,
         toMuteUserId: req.user.toMuteUserId,
@@ -230,7 +243,9 @@ userRouter.put(
   async (req, res, next) => {
     try {
 
-      userValidator.validateChangeBlockedProfile(req.body);
+      if (!userValidator.validateChangeBlockedProfile(req.body)) {
+        throw "Bad data.";
+      }
       await userService.changeBlockedProfile({
         id: req.user.id,
         toBlockUserId: req.user.toBlockUserId,

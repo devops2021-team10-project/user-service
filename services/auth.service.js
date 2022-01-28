@@ -1,6 +1,11 @@
-const userDb = require('./../data-access/user-db');
+
+// Utils
+const { issueJWT } = require('./../utils/jwt');
 const passwordUtils = require('./../utils/password');
-const { issueJWT } = require('./../utils/jwt')
+
+// DB access
+const userDb = require('./../data-access/user-db');
+
 
 const login = async ({
     username,
