@@ -6,9 +6,9 @@ const { verifyJWT } = require('../utils/jwt');
 
 const Role = require('./../utils/role');
 
-const authenticateUser = require('../middleware/authenticateUser.middleware');
-const authorizeRoles = require('../middleware/authorizeRoles.middleware');
-const authorizeFollowing = require('../middleware/authorizeFollowing.middleware');
+const { authenticateUser } = require('../middleware/authenticateUser.middleware');
+const { authorizeRoles } = require('../middleware/authorizeRoles.middleware');
+const { authorizeFollowing } = require('../middleware/authorizeFollowing.middleware');
 
 const { regularUserValidator: rValid, validate } = require('../validators/validators');
 

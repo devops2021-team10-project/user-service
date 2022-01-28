@@ -27,5 +27,9 @@ module.exports = Object.freeze({
     validateCreate: ajv.compile(require('./user/create')),
     validateUpdate: ajv.compile(require('./user/update')),
     validatePasswordReset: ajv.compile(require('./user/passwordReset')),
+    validateChangeIsPrivate: ajv.compile(require('./user/changeIsPrivate')),
+    validateChangeIsTaggable: ajv.compile(require('./user/changeIsTaggable')),
+    validateChangeMutedProfile: ajv.compile(require('./user/changeMutedProfile')),
+    validateChangeBlockedProfile: ajv.compile(require('./user/changeBlockedProfile'))
   }
 });

@@ -16,9 +16,9 @@ const publicRegularUserFormatter = require("../formatters/user/regular-user.form
 const { handleError } = require('./../utils/error');
 
 // Auth utils
-const authenticateUser = require('../middleware/authenticateUser.middleware');
-const authorizeRoles = require('../middleware/authorizeRoles.middleware');
-const authorizeFollowing = require('../middleware/authorizeFollowing.middleware');
+const { authenticateUser } = require('../middleware/authenticateUser.middleware');
+const { authorizeRoles } = require('../middleware/authorizeRoles.middleware');
+const { authorizeFollowing } = require('../middleware/authorizeFollowing.middleware');
 
 // Services
 const userService = require('./../services/user.service');
@@ -171,10 +171,11 @@ userRouter.put(
   authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
-      const {isPrivate} = validate(req.body, [rValid.isPrivate]);
+
+      userValidator.validateChangeIsPrivate(req.body);
       await userService.changeIsPrivate({ 
         id: req.user.id, 
-        value: isPrivate,
+        value: req.body.isPrivate,
       });
       return res.status(200).send("");
     } catch(err) {
@@ -189,10 +190,11 @@ userRouter.put(
   authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
-      const {isTaggable} = validate(req.body, [rValid.isTaggable]);
+
+      userValidator.validateChangeIsTaggable(req.body);
       await userService.changeIsTaggable({
         id: req.user.id,
-        value: isTaggable,
+        value: req.body.isTaggable,
       });
       return res.status(200).send("");
     } catch(err) {
@@ -207,14 +209,12 @@ userRouter.put(
   authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
-      const validData = validate(req.body, [
-        changeMutedProfileRequestValidator.toMuteUserId,
-        changeMutedProfileRequestValidator.isMuted,
-      ]);
+
+      userValidator.validateChangeMutedProfile(req.body);
       await userService.changeMutedProfile({
         id: req.user.id,
-        toMuteUserId: validData.toMuteUserId,
-        isMuted: validData.isMuted,
+        toMuteUserId: req.user.toMuteUserId,
+        isMuted: req.user.isMuted,
       });
       return res.status(200).send("");
     } catch(err) {
@@ -229,14 +229,12 @@ userRouter.put(
   authorizeRoles([roleEnum.regular]),
   async (req, res, next) => {
     try {
-      const validData = validate(req.body, [
-        changeBlockedProfileRequestValidator.toBlockUserId,
-        changeBlockedProfileRequestValidator.isBlocked,
-      ]);
+
+      userValidator.validateChangeBlockedProfile(req.body);
       await userService.changeBlockedProfile({
         id: req.user.id,
-        toBlockUserId: validData.toBlockUserId,
-        isBlocked: validData.isBlocked,
+        toBlockUserId: req.user.toBlockUserId,
+        isBlocked: req.user.isBlocked,
       });
       return res.status(200).send("");
     } catch(err) {
