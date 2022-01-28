@@ -226,8 +226,8 @@ userRouter.put(
       }
       await userService.changeMutedProfile({
         id: req.user.id,
-        toMuteUserId: req.user.toMuteUserId,
-        isMuted: req.user.isMuted,
+        toMuteUserId: req.body.toMuteUserId,
+        isMuted: req.body.isMuted,
       });
       return res.status(200).send("");
     } catch(err) {
@@ -248,8 +248,8 @@ userRouter.put(
       }
       await userService.changeBlockedProfile({
         id: req.user.id,
-        toBlockUserId: req.user.toBlockUserId,
-        isBlocked: req.user.isBlocked,
+        toBlockUserId: req.body.toBlockUserId,
+        isBlocked: req.body.isBlocked,
       });
       return res.status(200).send("");
     } catch(err) {

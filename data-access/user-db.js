@@ -81,7 +81,7 @@ const update = async ({ id, data }) => {
       }
     }
   );
-  if(result.matchedCount !== 1) {
+  if (result.matchedCount !== 1) {
     throw "User not found for update ops";
   }
 };
@@ -101,7 +101,7 @@ const addMutedProfile = async ({ userId, toMuteUserId }) => {
 
 const removeMutedProfile = async ({ userId, toMuteUserId }) => {
   const { db } = await makeDb();
-  const res = await db.collection('users').updateOne(
+  const result = await db.collection('users').updateOne(
     {
       _id: userId,
       deletedAt: null
@@ -110,6 +110,9 @@ const removeMutedProfile = async ({ userId, toMuteUserId }) => {
       $pull: { mutedProfiles: toMuteUserId }
     }
   );
+
+  console.log("toMuteUserId: " + toMuteUserId)
+  console.log("matchedCount" + result.matchedCount);
 };
 
 const addBlockedProfile = async ({ userId, toBlockUserId }) => {
