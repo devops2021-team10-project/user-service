@@ -8,7 +8,7 @@ const schema = {
     name: { type: "string", format: "general_name" },
     phoneNumber: { type: "string", format: "phone" },
     gender: { enum: ["male", "female", "other"]},
-    birthday: { type: "string", format: "custom_date" },
+    birthday: { type: "string" },
     website: { type: "string"},
     biography: { type: "string"}
   },

@@ -29,11 +29,11 @@ const registerRegularUser = async ({
   const foundUserByEmail = await userDb.findByEmail({ email: userData.email });
 
   if (foundUserByUsername) {
-    throw { status: 400, msg: "User with given username already exists." };
+    throw "User with given username already exists.";
   }
 
   if (foundUserByEmail) {
-    throw { status: 400, msg: "User with given email already exists." };
+    throw "User with given email already exists.";
   }
 
   const passSaltHash = passwordUtils.genPassword({ password: userData.password });
@@ -75,11 +75,11 @@ const updateRegularUser = async ({
   const foundUserByEmail = await userDb.findByEmail({ email: userData.email });
 
   if (foundUserByUsername !== null && foundUserByUsername.id !== id) {
-    throw { status: 400, msg: "User with given username already exists." };
+    throw "User with given username already exists.";
   }
 
   if (foundUserByEmail !== null && foundUserByEmail.id !== id) {
-    throw { status: 400, msg: "User with given email already exists." };
+    throw "User with given email already exists.";
   }
 
   const userUpdateData = {
@@ -145,7 +145,7 @@ const resetPassword = async ({
 } = {}) => {
   const isValid = passwordUtils.validPassword({ password: oldPassword, hash: user.passwordHash, salt: user.passwordSalt });
   if (!isValid) {
-    throw { status: 400, msg: "Wrong old password."};
+    throw "Wrong old password.";
   }
   const { salt, hash } = passwordUtils.genPassword({ password: newPassword });
   await userDb.resetPassword({ userId: user.id, passwordHash: hash, passwordSalt: salt });

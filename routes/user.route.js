@@ -1,6 +1,7 @@
 // Main
 const express = require('express');
 const userRouter = express.Router();
+const { differenceInYears, parse } = require('date-fns');
 
 // Enums
 const roleEnum = require('./../utils/role');
@@ -16,9 +17,9 @@ const publicRegularUserFormatter = require("../formatters/user/regular-user.form
 const { handleError } = require('./../utils/error');
 
 // Middleware
-const { authenticateUser } = require('../middleware/authenticateUser.middleware');
-const { authorizeRoles } = require('../middleware/authorizeRoles.middleware');
-const { authorizeFollowing } = require('../middleware/authorizeFollowing.middleware');
+const { authenticateUser } = require('../../api-gateway/middleware/authenticateUser.middleware');
+const { authorizeRoles } = require('../../api-gateway/middleware/authorizeRoles.middleware');
+const { authorizeFollowing } = require('../../api-gateway/middleware/authorizeFollowing.middleware');
 
 // Services
 const userService = require('./../services/user.service');
@@ -31,7 +32,7 @@ userRouter.get(
     try {
       const username = req.params.username;
       if (!username) {
-        throw { status: 400, msg: "Bad request" }
+        throw "Bad request";
       }
 
       const user = await userService.findUserByUsername({ username });
@@ -51,7 +52,7 @@ userRouter.get(
     try {
       const userId = req.params.userId;
       if (!userId) {
-        throw {status: 400, msg: "Bad request"}
+        throw "Bad request"
       }
 
       const user = await userService.findUserById({ id: userId });
@@ -72,7 +73,7 @@ userRouter.get(
     try {
       const name = req.params.name;
       if (!name) {
-        throw {status: 400, msg: "Bad request"}
+        throw "Bad request";
       }
 
       console.log(name)
@@ -97,7 +98,7 @@ userRouter.get(
       
       const userId = req.params.userId;
       if (!userId) {
-        throw {status: 400, msg: "Bad request"}
+        throw "Bad request";
       }
 
       const user = await userService.findUserById({ id: userId });
@@ -116,6 +117,17 @@ userRouter.post(
         throw "Bad data.";
       }
 
+      // Check age
+      try {
+        const birthday = parse(req.body.birthday, 'dd.MM.yyyy.', new Date());
+        const age = differenceInYears(new Date(), birthday);
+        if (age < 13) {
+          throw "You are under legal age to use social media platform."
+        }
+      } catch (err) {
+        throw "Bad date format.";
+      }
+
       const insertedUser = await userService.registerRegularUser({ userData: req.body });
       return res.status(200).json(regularUserFormatter.format(insertedUser));
     } catch(err) {
@@ -132,15 +144,26 @@ userRouter.put(
     try {
       const userId = req.params.userId;
       if (!userId) {
-        throw {status: 400, msg: "Bad request"};
+        throw "Bad request";
       }
 
       if (req.user.id !== userId && !req.isServiceCall) {
-        throw { status: 400, msg: "Access denied." };
+        throw "Access denied.";
       }
 
       if (!userValidator.validateUpdate(req.body)) {
         throw "Bad data.";
+      }
+
+      // Check age
+      try {
+        const birthday = parse(req.body.birthday, 'dd.MM.yyyy.', new Date());
+        const age = differenceInYears(new Date(), birthday);
+        if (age < 13) {
+          throw "You are under legal age to use social media platform."
+        }
+      } catch (err) {
+        throw "Bad date format.";
       }
 
       const updatedUser = await userService.updateRegularUser({ id: userId, userData: req.body });
@@ -235,7 +258,7 @@ userRouter.put(
     }
   });
 
-// Change muted profile
+// Change blocked profile
 userRouter.put(
   '/regular-user/change-blocked-profile',
   authenticateUser(),
