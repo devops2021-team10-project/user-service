@@ -1,83 +1,43 @@
-const amqp = require('amqplib');
+const { channelInit } = require('./rabbitMQConnector');
+const eventEmitter = require('./eventEmittler');
 
+const replyQueue = process.env.REPLY_QUEUE;
 
-const init = () => {
-  return new Promise((resolve, reject) => {
-    amqp.connect('amqp://user:123456@localhost:5672', (error0, connection) => {
-      if (error0) {
-        reject(error0);
-      }
-      connection.createChannel((error1, channel) => {
-        if (error1) {
-          reject(error1);
-        }
-        resolve(channel);
-      });
-    });
-  });
-};
 
 let channelSingleton = null;
-const getChannel = async () => {
+const consumerInit = async () => {
   if (channelSingleton === null) {
-    channelSingleton = await init();
-  } else {
-    return channelSingleton;
+    channelSingleton = await channelInit();
+    console.log("CONSUMER CHANNEL CREATED on RabbitMQ");
   }
 }
-
-
-const timeoutError = Symbol();
-const timeout = ({ prom, time, exception }) => {
-  let timer;
-  return Promise.race([
-    prom,
-    new Promise((_r, rej) => timer = setTimeout(rej, time, exception))
-  ]).finally(() => clearTimeout(timer));
+const getChannel = async () => {
+  if (channelSingleton === null) {
+    await consumerInit();
+  }
+  return channelSingleton;
 }
 
-
-const consumeCorrelated = async ({ queue, correlationId }) => {
-  const channel = await getChannel();
-  await channel.assertQueue(queue);
-
-  const consumePromise = new Promise((resolve, _reject) => {
-    channel.consume(queue, (msg) => {
-      if ((msg.properties.correlationId) === correlationId) {
-        resolve(JSON.parse(msg.content));
-      }
-    }, {
-      noAck: true
+const initReplyConsumer = () => new Promise(async (resolve, reject) => {
+  try {
+    const channel = await getChannel();
+    channel.assertQueue(replyQueue, {exclusive: false}, () => {
+      channel.consume(replyQueue, (msg) => {
+        eventEmitter.emit(String(msg.properties.correlationId), msg);
+      }, {
+        noAck: true
+      });
+      console.log("reply-CONSUMER connected to RabbitMQ");
+      resolve(channel);
     });
-  });
+  } catch (err) {
+    reject(err);
+  }
+});
 
-  return await timeout({
-    prom: consumePromise,
-    time: 3000,
-    exception: timeoutError
-  });
-}
-
-
-const consumeAny = async ({ queue }) => {
-  const channel = await getChannel();
-  await channel.assertQueue(queue);
-  const consumePromise = new Promise((resolve, _reject) => {
-    channel.consume(queue, (msg) => {
-      resolve(JSON.parse(msg.content));
-      channel.ack(msg);
-    });
-  });
-
-  return await timeout({
-    prom: consumePromise,
-    time: 3000,
-    exception: timeoutError
-  });
-}
 
 module.exports = Object.freeze({
+  consumerInit,
   getChannel,
-  consumeAny,
-  consumeCorrelated
+  initReplyConsumer,
 });

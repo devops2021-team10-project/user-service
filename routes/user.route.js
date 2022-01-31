@@ -9,9 +9,7 @@ const roleEnum = require('./../utils/role');
 // JSON request schema validators
 const { userValidator } = require('../schemas/ajv');
 
-// Formatters
-const regularUserFormatter = require("../formatters/user/regular-user.formatter");
-const publicRegularUserFormatter = require("../formatters/user/regular-user.formatter");
+
 
 // Utils
 const { handleError } = require('./../utils/error');

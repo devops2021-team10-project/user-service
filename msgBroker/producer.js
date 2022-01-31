@@ -1,38 +1,28 @@
-const amqp = require('amqplib');
+const { channelInit } = require('./rabbitMQConnector');
+const replyQueue = process.env.REPLY_QUEUE;
 
-const init = () => {
-  return new Promise((resolve, reject) => {
-    amqp.connect('amqp://user:123456@localhost:5672', (error0, connection) => {
-      if (error0) {
-        reject(error0);
-      }
-      connection.createChannel((error1, channel) => {
-        if (error1) {
-          reject(error1);
-        }
-        resolve(channel);
-      });
-    });
-  });
-};
 
 let channelSingleton = null;
-const getChannel = async () => {
+const producerInit = async () => {
   if (channelSingleton === null) {
-    channelSingleton = await init();
-  } else {
-    return channelSingleton;
+    channelSingleton = await channelInit();
+    console.log("PRODUCER CHANNEL CREATED on RabbitMQ");
   }
 }
+const getChannel = async () => {
+  if (channelSingleton === null) {
+    await producerInit();
+  }
+  return channelSingleton;
+}
 
-
-
-const produceWithReply = async ({ queue, replyQueue, content, correlationId }) => {
+const produceWithReply = async ({ queue, content, correlationId }) => {
   const channel = await getChannel();
   channel.sendToQueue(queue,
     Buffer.from(JSON.stringify(content)), {
       correlationId: correlationId,
-      replyTo: replyQueue });
+      replyTo: replyQueue
+  });
 };
 
 const produceWithNoReply = async ({ queue, content }) => {
@@ -42,6 +32,7 @@ const produceWithNoReply = async ({ queue, content }) => {
 
 
 module.exports = Object.freeze({
+  producerInit,
   getChannel,
   produceWithReply,
   produceWithNoReply

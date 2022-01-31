@@ -6,10 +6,9 @@ const brokerProducer = require('./msgBroker/producer');
 const userService = require('./services/user.service');
 
 const USER_SERVICE_QUEUES = {
-  noAuth_findUserByUsername:  "userService_noAuth_findUserByUsername",
-  noAuth_findUserById:        "userService_noAuth_findUserById",
-  noAuth_searchByName:        "userService_noAuth_searchByName",
   findUserById:               "userService_findUserById",
+  findUserByUsername:         "userService_findUserByUsername",
+  searchByName:               "userService_searchByName",
   registerRegularUser:        "userService_registerRegularUser",
   updateRegularUser:          "userService_updateRegularUser",
   resetPassword:              "userService_resetPassword",
@@ -43,28 +42,10 @@ const formatResponse = ({data, err }) => {
 }
 
 const declareRoutes = (consumerChannel, producerChannel) => {
-  consumerChannel.assertQueue(USER_SERVICE_QUEUES.noAuth_findUserByUsername).then(() => {
-    consumerChannel.consume(USER_SERVICE_QUEUES.noAuth_findUserByUsername, async (msg) => {
-      const data = JSON.parse(msg.content);
-      let respData = null;
-      try {
-        const user = await userService.findUserByUsername({ username: data.username });
-        respData = formatResponse({data: user, err: null});
-      } catch (err) {
-        respData = formatResponse({data: null, err});
-      }
 
-      producerChannel.sendToQueue(msg.properties.replyTo,
-        Buffer.from(JSON.stringify(respData)), {
-          correlationId: msg.properties.correlationId
-        });
-      consumerChannel.ack(msg);
-    });
-  });
-
-
-  consumerChannel.assertQueue(USER_SERVICE_QUEUES.noAuth_findUserById).then(() => {
-    consumerChannel.consume(USER_SERVICE_QUEUES.noAuth_findUserById, async (msg) => {
+  console.log("Declaring routes");
+  consumerChannel.assertQueue(USER_SERVICE_QUEUES.findUserById, { exclusive: false }, (error2, q) => {
+    consumerChannel.consume(USER_SERVICE_QUEUES.findUserById, async (msg) => {
       const data = JSON.parse(msg.content);
       let respData = null;
       try {
@@ -81,10 +62,42 @@ const declareRoutes = (consumerChannel, producerChannel) => {
       consumerChannel.ack(msg);
     });
   });
+
+
+  consumerChannel.assertQueue(USER_SERVICE_QUEUES.findUserByUsername, { exclusive: false }, (error2, q) => {
+    consumerChannel.consume(USER_SERVICE_QUEUES.findUserByUsername, async (msg) => {
+      const data = JSON.parse(msg.content);
+      console.log("Get Request content: ");
+      console.log(data);
+
+      let respData = null;
+      try {
+        const user = await userService.findUserByUsername({ username: data.username });
+        respData = formatResponse({data: user, err: null});
+      } catch (err) {
+        respData = formatResponse({data: null, err});
+      }
+
+      console.log("Send response");
+      console.log("ReplyTo queue: " + msg.properties.replyTo + " with cID: " + msg.properties.correlationId);
+
+      producerChannel.sendToQueue(msg.properties.replyTo,
+        Buffer.from(JSON.stringify(respData)), {
+          correlationId: msg.properties.correlationId
+        });
+      consumerChannel.ack(msg);
+    });
+  });
 }
 
 
 // Connect, make channels and start
 Promise.all([brokerConsumer.getChannel(), brokerProducer.getChannel()]).then(values => {
-  declareRoutes(values[0], values[1]);
+  try {
+    declareRoutes(values[0], values[1]);
+
+    console.log("Ready");
+  } catch (err) {
+    console.log(err);
+  }
 });
