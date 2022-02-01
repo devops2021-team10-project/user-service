@@ -138,17 +138,14 @@ const changeBlockedProfile = async ({
 }
 
 
-const resetPassword = async ({
-  user,
-  oldPassword,
-  newPassword
-} = {}) => {
+const resetPassword = async ({ userId, oldPassword, newPassword } = {}) => {
+  const user = await findUserById({ id: userId });
   const isValid = passwordUtils.validPassword({ password: oldPassword, hash: user.passwordHash, salt: user.passwordSalt });
   if (!isValid) {
     throw "Wrong old password.";
   }
   const { salt, hash } = passwordUtils.genPassword({ password: newPassword });
-  await userDb.resetPassword({ userId: user.id, passwordHash: hash, passwordSalt: salt });
+  await userDb.resetPassword({ userId: userId, passwordHash: hash, passwordSalt: salt });
 }
 
 const deleteRegularUser = async ({ id } = {}) => {

@@ -49,7 +49,7 @@ const declareRoutes = (consumerChannel, producerChannel) => {
       const data = JSON.parse(msg.content);
       let respData = null;
       try {
-        const user = await userService.findUserById({ username: data.id });
+        const user = await userService.findUserById({ id: data.id });
         respData = formatResponse({data: user, err: null});
       } catch (err) {
         respData = formatResponse({data: null, err});
@@ -67,9 +67,6 @@ const declareRoutes = (consumerChannel, producerChannel) => {
   consumerChannel.assertQueue(USER_SERVICE_QUEUES.findUserByUsername, { exclusive: false }, (error2, q) => {
     consumerChannel.consume(USER_SERVICE_QUEUES.findUserByUsername, async (msg) => {
       const data = JSON.parse(msg.content);
-      console.log("Get Request content: ");
-      console.log(data);
-
       let respData = null;
       try {
         const user = await userService.findUserByUsername({ username: data.username });
@@ -78,8 +75,25 @@ const declareRoutes = (consumerChannel, producerChannel) => {
         respData = formatResponse({data: null, err});
       }
 
-      console.log("Send response");
-      console.log("ReplyTo queue: " + msg.properties.replyTo + " with cID: " + msg.properties.correlationId);
+      producerChannel.sendToQueue(msg.properties.replyTo,
+        Buffer.from(JSON.stringify(respData)), {
+          correlationId: msg.properties.correlationId
+        });
+      consumerChannel.ack(msg);
+    });
+  });
+
+
+  consumerChannel.assertQueue(USER_SERVICE_QUEUES.searchByName, { exclusive: false }, (error2, q) => {
+    consumerChannel.consume(USER_SERVICE_QUEUES.searchByName, async (msg) => {
+      const data = JSON.parse(msg.content);
+      let respData = null;
+      try {
+        const users = await userService.searchByName({ name: data.name });
+        respData = formatResponse({data: users, err: null});
+      } catch (err) {
+        respData = formatResponse({data: null, err});
+      }
 
       producerChannel.sendToQueue(msg.properties.replyTo,
         Buffer.from(JSON.stringify(respData)), {
@@ -88,6 +102,183 @@ const declareRoutes = (consumerChannel, producerChannel) => {
       consumerChannel.ack(msg);
     });
   });
+
+  consumerChannel.assertQueue(USER_SERVICE_QUEUES.registerRegularUser, { exclusive: false }, (error2, q) => {
+    consumerChannel.consume(USER_SERVICE_QUEUES.registerRegularUser, async (msg) => {
+      const data = JSON.parse(msg.content);
+      let respData = null;
+      try {
+        const user = await userService.registerRegularUser({ userData: data.userData });
+        respData = formatResponse({data: user, err: null});
+      } catch (err) {
+        respData = formatResponse({data: null, err});
+      }
+
+      producerChannel.sendToQueue(msg.properties.replyTo,
+        Buffer.from(JSON.stringify(respData)), {
+          correlationId: msg.properties.correlationId
+        });
+      consumerChannel.ack(msg);
+    });
+  });
+
+  consumerChannel.assertQueue(USER_SERVICE_QUEUES.updateRegularUser, { exclusive: false }, (error2, q) => {
+    consumerChannel.consume(USER_SERVICE_QUEUES.updateRegularUser, async (msg) => {
+      const data = JSON.parse(msg.content);
+      let respData = null;
+      try {
+        const user = await userService.updateRegularUser({ id: data.userId, userData: data.userData });
+        respData = formatResponse({data: user, err: null});
+      } catch (err) {
+        respData = formatResponse({data: null, err});
+      }
+
+      producerChannel.sendToQueue(msg.properties.replyTo,
+        Buffer.from(JSON.stringify(respData)), {
+          correlationId: msg.properties.correlationId
+        });
+      consumerChannel.ack(msg);
+    });
+  });
+
+
+  consumerChannel.assertQueue(USER_SERVICE_QUEUES.resetPassword, { exclusive: false }, (error2, q) => {
+    consumerChannel.consume(USER_SERVICE_QUEUES.resetPassword, async (msg) => {
+      const data = JSON.parse(msg.content);
+      let respData = null;
+      try {
+        await userService.resetPassword({
+          userId: data.userId,
+          oldPassword: data.oldPassword,
+          newPassword: data.newPassword
+        });
+        respData = formatResponse({data: {}, err: null});
+      } catch (err) {
+        respData = formatResponse({data: null, err});
+      }
+
+      producerChannel.sendToQueue(msg.properties.replyTo,
+        Buffer.from(JSON.stringify(respData)), {
+          correlationId: msg.properties.correlationId
+        });
+      consumerChannel.ack(msg);
+    });
+  });
+
+
+  consumerChannel.assertQueue(USER_SERVICE_QUEUES.changeIsPrivate, { exclusive: false }, (error2, q) => {
+    consumerChannel.consume(USER_SERVICE_QUEUES.changeIsPrivate, async (msg) => {
+      const data = JSON.parse(msg.content);
+      let respData = null;
+      try {
+        await userService.changeIsPrivate({
+          id: data.userId,
+          value: data.value
+        });
+        respData = formatResponse({data: {}, err: null});
+      } catch (err) {
+        respData = formatResponse({data: null, err});
+      }
+
+      producerChannel.sendToQueue(msg.properties.replyTo,
+        Buffer.from(JSON.stringify(respData)), {
+          correlationId: msg.properties.correlationId
+        });
+      consumerChannel.ack(msg);
+    });
+  });
+
+
+  consumerChannel.assertQueue(USER_SERVICE_QUEUES.changeIsTaggable, { exclusive: false }, (error2, q) => {
+    consumerChannel.consume(USER_SERVICE_QUEUES.changeIsTaggable, async (msg) => {
+      const data = JSON.parse(msg.content);
+      let respData = null;
+      try {
+        await userService.changeIsTaggable({
+          id: data.userId,
+          value: data.value
+        });
+        respData = formatResponse({data: {}, err: null});
+      } catch (err) {
+        respData = formatResponse({data: null, err});
+      }
+
+      producerChannel.sendToQueue(msg.properties.replyTo,
+        Buffer.from(JSON.stringify(respData)), {
+          correlationId: msg.properties.correlationId
+        });
+      consumerChannel.ack(msg);
+    });
+  });
+
+
+  consumerChannel.assertQueue(USER_SERVICE_QUEUES.changeMutedProfile, { exclusive: false }, (error2, q) => {
+    consumerChannel.consume(USER_SERVICE_QUEUES.changeMutedProfile, async (msg) => {
+      const data = JSON.parse(msg.content);
+      let respData = null;
+      try {
+        await userService.changeMutedProfile({
+          id: data.id,
+          toMuteUserId: data.toMuteUserId,
+          isMuted: data.isMuted,
+        });
+        respData = formatResponse({data: {}, err: null});
+      } catch (err) {
+        respData = formatResponse({data: null, err});
+      }
+
+      producerChannel.sendToQueue(msg.properties.replyTo,
+        Buffer.from(JSON.stringify(respData)), {
+          correlationId: msg.properties.correlationId
+        });
+      consumerChannel.ack(msg);
+    });
+  });
+
+  consumerChannel.assertQueue(USER_SERVICE_QUEUES.changeBlockedProfile, { exclusive: false }, (error2, q) => {
+    consumerChannel.consume(USER_SERVICE_QUEUES.changeBlockedProfile, async (msg) => {
+      const data = JSON.parse(msg.content);
+      console.log(data);
+      let respData = null;
+      try {
+        await userService.changeBlockedProfile({
+          id: data.id,
+          toBlockUserId: data.toBlockUserId,
+          isBlocked: data.isBlocked,
+        });
+        respData = formatResponse({data: {}, err: null});
+      } catch (err) {
+        respData = formatResponse({data: null, err});
+      }
+
+      producerChannel.sendToQueue(msg.properties.replyTo,
+        Buffer.from(JSON.stringify(respData)), {
+          correlationId: msg.properties.correlationId
+        });
+      consumerChannel.ack(msg);
+    });
+  });
+
+
+  consumerChannel.assertQueue(USER_SERVICE_QUEUES.delete, { exclusive: false }, (error2, q) => {
+    consumerChannel.consume(USER_SERVICE_QUEUES.delete, async (msg) => {
+      const data = JSON.parse(msg.content);
+      let respData = null;
+      try {
+        await userService.deleteRegularUser({ id: data.id });
+        respData = formatResponse({data: {}, err: null});
+      } catch (err) {
+        respData = formatResponse({data: null, err});
+      }
+
+      producerChannel.sendToQueue(msg.properties.replyTo,
+        Buffer.from(JSON.stringify(respData)), {
+          correlationId: msg.properties.correlationId
+        });
+      consumerChannel.ack(msg);
+    });
+  });
+
 }
 
 
@@ -95,7 +286,6 @@ const declareRoutes = (consumerChannel, producerChannel) => {
 Promise.all([brokerConsumer.getChannel(), brokerProducer.getChannel()]).then(values => {
   try {
     declareRoutes(values[0], values[1]);
-
     console.log("Ready");
   } catch (err) {
     console.log(err);
