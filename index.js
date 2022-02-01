@@ -2,8 +2,10 @@ require('dotenv').config();
 
 const brokerConsumer = require('./msgBroker/consumer');
 const brokerProducer = require('./msgBroker/producer');
+const { formatResponse } = require('./msgBroker/utils');
 
 const userService = require('./services/user.service');
+
 
 const USER_SERVICE_QUEUES = {
   findUserById:               "userService_findUserById",
@@ -19,31 +21,8 @@ const USER_SERVICE_QUEUES = {
   delete:                     "userService_delete"
 };
 
-const formatResponse = ({data, err }) => {
-  let respData = {};
-  if (!err) {
-    respData = {
-      isError: false,
-      error: null,
-      data,
-      serviceName: "userService",
-      timestamp: Date.now()
-    };
-  } else {
-    respData = {
-      isError: true,
-      error: err,
-      data:  null,
-      serviceName: "userService",
-      timestamp: Date.now()
-    }
-  }
-  return respData;
-}
+const declareQueues = (consumerChannel, producerChannel) => {
 
-const declareRoutes = (consumerChannel, producerChannel) => {
-
-  console.log("Declaring routes");
   consumerChannel.assertQueue(USER_SERVICE_QUEUES.findUserById, { exclusive: false }, (error2, q) => {
     consumerChannel.consume(USER_SERVICE_QUEUES.findUserById, async (msg) => {
       const data = JSON.parse(msg.content);
@@ -282,11 +261,11 @@ const declareRoutes = (consumerChannel, producerChannel) => {
 }
 
 
-// Connect, make channels and start
+// Connect, make queues and start
 Promise.all([brokerConsumer.getChannel(), brokerProducer.getChannel()]).then(values => {
   try {
-    declareRoutes(values[0], values[1]);
-    console.log("Ready");
+    declareQueues(values[0], values[1]);
+    console.log("User Service Ready");
   } catch (err) {
     console.log(err);
   }
