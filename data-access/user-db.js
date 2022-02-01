@@ -1,5 +1,7 @@
+// Main
 const Id = require('../utils/id');
 const { makeDb } = require('./db');
+
 
 const findById = async ({ id: _id }) => {
   const { db } = await makeDb();
@@ -10,6 +12,25 @@ const findById = async ({ id: _id }) => {
   }
   const { _id: id, ...info } = found[0];
   return { id, ...info };
+};
+
+const searchByName = async ({ name }) => {
+  const { db } = await makeDb();
+  const result = await db.collection('users').find(
+    { $text: { $search: name } },
+    { score: { $meta: "textScore" } }
+  ).sort( { score: { $meta: "textScore" } } );
+  const found = await result.toArray();
+  if (found.length === 0) {
+    return null;
+  }
+
+  const normal = [];
+  for (let e of found) {
+    const { _id: id, ...info } = e;
+    normal.push({ id, ...info });
+  }
+  return normal;
 };
 
 const findByUsername = async ({ username }) => {
@@ -34,28 +55,23 @@ const findByEmail = async ({ email }) => {
   return { id, ...insertedInfo };
 };
 
-const insert = async ({ id: _id = Id.makeId(), ...userData }) => {
+const insert = async ({ data }) => {
   try {
+    const id = Id.makeId();
     const { db } = await makeDb();
-    const foundUser = findByUsername
-
     const result = await db
       .collection('users')
-      .insertOne({ _id, ...userData });
-    const { _id: id, ...insertedInfo } = result.ops[0];
-    return { id, ...insertedInfo };
+      .insertOne({ _id: id, ...data });
+    const { _id, ...insertedUser } = result.ops[0];
+    return { id: _id, ...insertedUser };
   } catch(err) {
-    if (err.name === 'MongoError' && err.code === 11000) {
-      throw 'Email already in use.';
-    } else {
-      throw err;
-    }
+    throw err;
   }
 };
 
 const update = async ({ id, data }) => {
   const { db } = await makeDb();
-  const res = await db.collection('users').updateOne(
+  const result = await db.collection('users').updateOne(
     {
       _id: id,
       deletedAt: null
@@ -65,25 +81,80 @@ const update = async ({ id, data }) => {
       }
     }
   );
-  if(res.modifiedCount !== 1) {
-    throw "Not Found";
+  if (result.matchedCount !== 1) {
+    throw "User not found for update ops";
   }
 };
 
-const resetPassword = async ({ userId, salt, hash }) => {
+const addMutedProfile = async ({ userId, toMuteUserId }) => {
+  const { db } = await makeDb();
+  const res = await db.collection('users').updateOne(
+    {
+      _id: userId,
+      deletedAt: null
+    }, 
+    {
+      $addToSet: { mutedProfiles: toMuteUserId }
+    }
+  );
+};
+
+const removeMutedProfile = async ({ userId, toMuteUserId }) => {
+  const { db } = await makeDb();
+  const result = await db.collection('users').updateOne(
+    {
+      _id: userId,
+      deletedAt: null
+    }, 
+    {
+      $pull: { mutedProfiles: toMuteUserId }
+    }
+  );
+
+  console.log("toMuteUserId: " + toMuteUserId)
+  console.log("matchedCount" + result.matchedCount);
+};
+
+const addBlockedProfile = async ({ userId, toBlockUserId }) => {
+  const { db } = await makeDb();
+  const res = await db.collection('users').updateOne(
+    {
+      _id: userId,
+      deletedAt: null
+    }, 
+    {
+      $addToSet: { blockedProfiles: toBlockUserId }
+    }
+  );
+};
+
+const removeBlockedProfile = async ({ userId, toBlockUserId }) => {
+  const { db } = await makeDb();
+  const res = await db.collection('users').updateOne(
+    {
+      _id: userId,
+      deletedAt: null
+    }, 
+    {
+      $pull: { blockedProfiles: toBlockUserId }
+    }
+  );
+};
+
+const resetPassword = async ({ userId, passwordHash, passwordSalt }) => {
   const { db } = await makeDb();
   const res = await db.collection('users').updateOne(
     {
       _id: userId
     }, {
       $set: {
-        salt,
-        hash
+        passwordHash,
+        passwordSalt
       }
     }
   );
-  if(res.modifiedCount !== 1) {
-    throw "Not Found";
+  if(res.matchedCount !== 1) {
+    throw "User not found for reset password ops";
   }
 };
 
@@ -99,18 +170,26 @@ const deleteById = async ({ id }) => {
       }
     }
   );
-  if(res.modifiedCount !== 1) {
-    throw "Not Found";
+  if(res.matchedCount !== 1) {
+    throw "User not found for delete ops";
   }
 };
 
 
 module.exports = Object.freeze({
   findById,
+  searchByName,
   findByUsername,
   findByEmail,
+
   insert,
   update,
   resetPassword,
+
+  addMutedProfile,
+  removeMutedProfile,
+  addBlockedProfile,
+  removeBlockedProfile,
+
   deleteById,
 });

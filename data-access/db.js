@@ -1,9 +1,13 @@
+
+// Main
 const { MongoClient } = require('mongodb');
 
+// ENV variables
 const url = process.env.DB_URL;
 const dbName = process.env.DB_NAME;
-const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true, retryWrites: false, poolSize: 3 });
 
+
+const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true, retryWrites: false, poolSize: 3 });
 const makeDb = async () => {
   if (!client.isConnected()) {
     await client.connect();
