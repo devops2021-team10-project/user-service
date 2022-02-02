@@ -106,38 +106,6 @@ const changeIsPrivate = async ({
   await userDb.update({ id, data: { isPrivate: value }} );
 }
 
-const changeIsTaggable = async ({
-  id,
-  value
-} = {}) => {
-  await userDb.update({ id, data: { isTaggable: value }} );
-}
-
-const changeMutedProfile = async ({
-  id,
-  toMuteUserId,
-  isMuted,
-} = {}) => {
-  if (isMuted) {
-    await userDb.addMutedProfile({ userId: id, toMuteUserId });
-  } else {
-    await userDb.removeMutedProfile({ userId: id, toMuteUserId });
-  }  
-}
-
-const changeBlockedProfile = async ({
-  id,
-  toBlockUserId,
-  isBlocked,
-} = {}) => {
-  if (isBlocked) {
-    await userDb.addBlockedProfile({ userId: id, toBlockUserId });
-  } else {
-    await userDb.removeBlockedProfile({ userId: id, toBlockUserId });
-  }
-}
-
-
 const resetPassword = async ({ userId, oldPassword, newPassword } = {}) => {
   const user = await findUserById({ id: userId });
   const isValid = passwordUtils.validPassword({ password: oldPassword, hash: user.passwordHash, salt: user.passwordSalt });
@@ -161,9 +129,6 @@ module.exports = Object.freeze({
 
   updateRegularUser,
   changeIsPrivate,
-  changeIsTaggable,
-  changeMutedProfile,
-  changeBlockedProfile,
 
   resetPassword,
 

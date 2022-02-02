@@ -15,9 +15,6 @@ const USER_SERVICE_QUEUES = {
   updateRegularUser:          "userService_updateRegularUser",
   resetPassword:              "userService_resetPassword",
   changeIsPrivate:            "userService_changeIsPrivate",
-  changeIsTaggable:           "userService_changeIsTaggable",
-  changeMutedProfile:         "userService_changeMutedProfile",
-  changeBlockedProfile:       "userService_changeBlockedProfile",
   delete:                     "userService_delete"
 };
 
@@ -168,77 +165,6 @@ const declareQueues = (consumerChannel, producerChannel) => {
   });
 
 
-  consumerChannel.assertQueue(USER_SERVICE_QUEUES.changeIsTaggable, { exclusive: false }, (error2, q) => {
-    consumerChannel.consume(USER_SERVICE_QUEUES.changeIsTaggable, async (msg) => {
-      const data = JSON.parse(msg.content);
-      let respData = null;
-      try {
-        await userService.changeIsTaggable({
-          id: data.userId,
-          value: data.value
-        });
-        respData = formatResponse({data: {}, err: null});
-      } catch (err) {
-        respData = formatResponse({data: null, err});
-      }
-
-      producerChannel.sendToQueue(msg.properties.replyTo,
-        Buffer.from(JSON.stringify(respData)), {
-          correlationId: msg.properties.correlationId
-        });
-      consumerChannel.ack(msg);
-    });
-  });
-
-
-  consumerChannel.assertQueue(USER_SERVICE_QUEUES.changeMutedProfile, { exclusive: false }, (error2, q) => {
-    consumerChannel.consume(USER_SERVICE_QUEUES.changeMutedProfile, async (msg) => {
-      const data = JSON.parse(msg.content);
-      let respData = null;
-      try {
-        await userService.changeMutedProfile({
-          id: data.id,
-          toMuteUserId: data.toMuteUserId,
-          isMuted: data.isMuted,
-        });
-        respData = formatResponse({data: {}, err: null});
-      } catch (err) {
-        respData = formatResponse({data: null, err});
-      }
-
-      producerChannel.sendToQueue(msg.properties.replyTo,
-        Buffer.from(JSON.stringify(respData)), {
-          correlationId: msg.properties.correlationId
-        });
-      consumerChannel.ack(msg);
-    });
-  });
-
-  consumerChannel.assertQueue(USER_SERVICE_QUEUES.changeBlockedProfile, { exclusive: false }, (error2, q) => {
-    consumerChannel.consume(USER_SERVICE_QUEUES.changeBlockedProfile, async (msg) => {
-      const data = JSON.parse(msg.content);
-      console.log(data);
-      let respData = null;
-      try {
-        await userService.changeBlockedProfile({
-          id: data.id,
-          toBlockUserId: data.toBlockUserId,
-          isBlocked: data.isBlocked,
-        });
-        respData = formatResponse({data: {}, err: null});
-      } catch (err) {
-        respData = formatResponse({data: null, err});
-      }
-
-      producerChannel.sendToQueue(msg.properties.replyTo,
-        Buffer.from(JSON.stringify(respData)), {
-          correlationId: msg.properties.correlationId
-        });
-      consumerChannel.ack(msg);
-    });
-  });
-
-
   consumerChannel.assertQueue(USER_SERVICE_QUEUES.delete, { exclusive: false }, (error2, q) => {
     consumerChannel.consume(USER_SERVICE_QUEUES.delete, async (msg) => {
       const data = JSON.parse(msg.content);
@@ -262,10 +188,10 @@ const declareQueues = (consumerChannel, producerChannel) => {
 
 
 // Connect, make queues and start
-Promise.all([brokerConsumer.getChannel(), brokerProducer.getChannel()]).then(values => {
+Promise.all([brokerConsumer.getChannel(), brokerProducer.getChannel(), brokerConsumer.initReplyConsumer()]).then(values => {
   try {
     declareQueues(values[0], values[1]);
-    console.log("User Service Ready");
+    console.log("User Service - Ready");
   } catch (err) {
     console.log(err);
   }
