@@ -86,61 +86,6 @@ const update = async ({ id, data }) => {
   }
 };
 
-const addMutedProfile = async ({ userId, toMuteUserId }) => {
-  const { db } = await makeDb();
-  const res = await db.collection('users').updateOne(
-    {
-      _id: userId,
-      deletedAt: null
-    }, 
-    {
-      $addToSet: { mutedProfiles: toMuteUserId }
-    }
-  );
-};
-
-const removeMutedProfile = async ({ userId, toMuteUserId }) => {
-  const { db } = await makeDb();
-  const result = await db.collection('users').updateOne(
-    {
-      _id: userId,
-      deletedAt: null
-    }, 
-    {
-      $pull: { mutedProfiles: toMuteUserId }
-    }
-  );
-
-  console.log("toMuteUserId: " + toMuteUserId)
-  console.log("matchedCount" + result.matchedCount);
-};
-
-const addBlockedProfile = async ({ userId, toBlockUserId }) => {
-  const { db } = await makeDb();
-  const res = await db.collection('users').updateOne(
-    {
-      _id: userId,
-      deletedAt: null
-    }, 
-    {
-      $addToSet: { blockedProfiles: toBlockUserId }
-    }
-  );
-};
-
-const removeBlockedProfile = async ({ userId, toBlockUserId }) => {
-  const { db } = await makeDb();
-  const res = await db.collection('users').updateOne(
-    {
-      _id: userId,
-      deletedAt: null
-    }, 
-    {
-      $pull: { blockedProfiles: toBlockUserId }
-    }
-  );
-};
-
 const resetPassword = async ({ userId, passwordHash, passwordSalt }) => {
   const { db } = await makeDb();
   const res = await db.collection('users').updateOne(
@@ -185,11 +130,6 @@ module.exports = Object.freeze({
   insert,
   update,
   resetPassword,
-
-  addMutedProfile,
-  removeMutedProfile,
-  addBlockedProfile,
-  removeBlockedProfile,
 
   deleteById,
 });
